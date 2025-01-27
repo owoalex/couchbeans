@@ -1,5 +1,5 @@
 # CouchBeans
-CouchBeans is a CouchDB library for python, aiming to provide as much resilience as possible for dodgy network environments. It's designed to be quick and easy to use, with as much complexity hidden from the user as possible.
+*Have you ever held up a broken couch with a tin of beans?* CouchBeans is a [CouchDB](https://couchdb.apache.org/) library for python, aiming to provide as much resilience as possible for dodgy network environments. It's designed to be quick and easy to use, with as much complexity hidden from the user as possible.
 
 A quick example:
 ```
