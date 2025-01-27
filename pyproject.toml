@@ -1,0 +1,33 @@
+[project]
+name = "couchbeans"
+dynamic = ["version"]
+authors = [
+  { name="Alex Baldwin", email="contact@alexbaldwin.dev" },
+]
+license = { text="LGPL-3.0" }
+description = "A CouchDB library for python, focused on network resilience."
+readme = "README.md"
+requires-python = ">=3.4"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "requests >= 2.28.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/owoalex/couchbeans"
+Issues = "https://github.com/owoalex/couchbeans/issues"
+
+[tool.setuptools.dynamic]
+
+[tool.setuptools]
+packages = ["couchbeans"]
+package-dir = {"" = "src"}
+
+[tool.setuptools_scm]
+
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
