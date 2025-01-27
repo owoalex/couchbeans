@@ -4,9 +4,13 @@
 A quick example:
 ```
 >>> from couchbeans import CouchClient
->>> db = CouchClient("http://root:couchbeans@localhost:6984/")
->>> db.get_document("main", "bb0065e5-d047-4bfc-b64a-855adeb89e35")
-{"_id":"bb0065e5-d047-4bfc-b64a-855adeb89e35", "_rev": "1-90d3dbcd053542fda4bdd6754ecc917a", "msg": "hello world!"}
+>>> db = CouchClient("http://root:couchbeans@localhost:5984/")
+>>> db.create_db("main")
+True
+>>> db.put_document("main", "bean", {"type": "baked"})
+{'ok': True, 'id': 'bean', 'rev': '1-975cf46dd62455d25b4743874062ebfe'}
+>>> db.get_document("main", "bean")
+{'_id': 'bean', '_rev': '1-975cf46dd62455d25b4743874062ebfe', 'type': 'baked'}
 ```
 
 Have a look at the [test script](./test/example.py) for more examples of how to use CouchBeans.
