@@ -3,6 +3,9 @@
 from couchbeans import CouchClient
 from couchbeans.exceptions import ObjectAlreadyExistsException
 import argparse
+import traceback
+import hashlib
+import random
 import json
 
 def get_doc_diff(doc1, doc2):
@@ -71,6 +74,64 @@ def test_patch_document(conn, verbose):
     #print(json.dumps(doc, indent=4))
     return len(get_doc_diff(doc, desired_doc)) == 0 # Check for an exact match
 
+def test_mass_put_document(conn, verbose):
+    types = ["acidic", "ample", "appealing", "appetizing", "aromatic", "astringent", "balsamic", "beautiful", "bite-size", "bitter", "bland", "blazed", "blended", "blunt", "boiled", "briny", "brown", "burnt", "buttered", "caked", "calorie", "candied", "caramelized", "caustic", "center cut", "cheesy", "chocolate", "cholesterol free", "chunked", "classic", "classy", "cold", "cool", "crafted", "creamed", "creamy", "crisp", "crunchy", "cured", "cutting", "dazzling", "deep-fried", "delectable", "delicious", "delight", "distinctive", "doughy", "dressed", "dripping", "drizzle", "dry", "dull", "edible", "elastic", "ethnic", "extraordinary", "famous", "famy", "fantastic", "fetid", "fiery", "filet", "fizzy", "flaky", "flat", "flavored", "flavorful", "fleshy", "fluffy", "fragile", "free", "fresh", "fried", "frozen", "fruity", "furry", "garlic", "generous", "gingery", "glazed", "golden", "gorgeous", "gourmet", "greasy", "grilled", "gritty", "harsh", "heady", "honey", "hot", "icy", "infused", "insipid", "intense", "juicy", "jumbo", "kosher", "large", "lavish", "lean", "leathery", "lite", "lively", "low", "low-fat", "luscious", "marinated", "mashed", "mellow", "mild", "minty", "mixed", "moist", "mouth-watering", "nationally famous", "natural", "nectarous", "non-fat", "nutmeg", "nutty", "oily", "open face", "organic", "overpowering", "palatable", "penetrating", "peppery", "perfection", "petite", "pickled", "piquant", "plain", "pleasant", "plump", "poached", "popular", "pounded", "prepared", "prickly", "pulpy", "pungent", "pureed", "rancid", "rank", "reduced", "refresh", "rich", "ripe", "roasted", "robust", "rotten", "rubbery", "saccharine", "saline", "salty", "sapid", "saporous", "satin", "satiny", "sauteed", "savorless", "savory", "scrumptious", "sea salt", "seared", "seasoned", "sharp", "sharp-tasting", "silky", "simmered", "sizzling", "skillfully", "small", "smelly", "smoked", "smoky", "smothered", "soothing", "soporific", "sour", "special", "spiced", "spicy", "spiral-cut", "spongy", "sprinkled", "stale", "steamed", "sticky", "stinging", "strong", "stuffed", "succulent", "sugar-coated", "sugared", "sugar-free", "sugarless", "sugary", "superb", "sweet", "sweet-and-sour", "sweetened", "syrupy", "tangy", "tantalizing", "tart", "tasteful", "tasteless", "tasty", "tender", "tepid", "terrific", "thick", "thin", "toasted", "topped", "tossed", "tough", "traditional", "treacly", "treat", "unflavored", "unsavory", "unseasoned", "vanilla", "velvety", "vinegary", "warm", "waxy", "weak", "whipped", "whole", "wonderful", "yucky", "yummy", "zesty", "zingy"]
+    if verbose:
+        print("Testing creating many documents")
+
+    for bean_type in types:
+        esrc = hashlib.md5(bean_type.encode("utf-8")).digest()
+        random.seed(esrc)
+        n_doc = {
+                "edible": True,
+                "price": (random.randint(50, 300) / 100),
+                "weight": random.randint(450, 550),
+                "stock": random.randint(100, 300)
+            }
+        conn.put_document("beans_test_db", bean_type, n_doc)
+
+    desired_doc = {
+            "edible": True,
+            "price": 2.99,
+            "weight": 469,
+            "stock": 145
+        } # Should always be the same because of seed
+    doc = conn.get_document("beans_test_db", "lavish")
+    return len(get_doc_diff(doc, desired_doc)) == 0 # Check for an exact match
+
+def test_find_document(conn, verbose):
+    if verbose:
+        print("Testing finding a document")
+    desired_doc = {
+            "edible": True,
+            "price": 2.99,
+            "weight": 499,
+            "stock": 228
+        }
+    docs = conn.find("beans_test_db", {
+            "price": 2.99,
+            "weight": 499
+        })["docs"]
+    doc = {}
+    if len(docs) == 1:
+        doc = docs[0]
+    return len(get_doc_diff(doc, desired_doc)) == 0 # Check for an exact match
+
+def test_find_all_document(conn, verbose):
+    if verbose:
+        print("Testing finding a huge list of documents")
+    desired_doc = {
+            "edible": True,
+            "price": 2.99,
+            "weight": 499,
+            "stock": 228
+        }
+    docs = conn.find_all("beans_test_db", {
+            "edible": True
+        })["docs"]
+    doc = {}
+    return len(docs) == 238
+
 def test_delete_document(conn, verbose):
     if verbose:
         print("Testing deleting the last document")
@@ -93,7 +154,7 @@ if __name__ == "__main__":
     verbose = args.verbose
     if as_json:
         verbose = False
-    couch_base_uri = args.connection_uri # e.g. http://root:couchbeans@localhost:5984/
+    couch_base_uri = args.connection_uri # e.g. http://root:couchbeans@localhost:5984/ # docker run -e COUCHDB_USER=root -e COUCHDB_PASSWORD=couchbeans -p 5984:5984 -d --name couchdb-test couchdb
     conn = CouchClient(couch_base_uri)
     conn.set_verbose(verbose)
 
@@ -105,6 +166,9 @@ if __name__ == "__main__":
             test_create_db,
             test_put_document,
             test_patch_document,
+            test_mass_put_document,
+            test_find_document,
+            test_find_all_document,
             test_delete_document,
             test_delete_db,
         ]
@@ -118,7 +182,8 @@ if __name__ == "__main__":
         except Exception as e:
             exceptions.append({
                     "on": test.__name__,
-                    "error": str(e)
+                    "error": str(e),
+                    "trace": traceback.format_exception(e)
                 })
 
     if as_json:
@@ -137,5 +202,6 @@ if __name__ == "__main__":
             print("    - " + failt)
         print(f"{len(exceptions)} exceptions:")
         for exception in exceptions:
-            print("    - " + exception["test"])
-            print("      " + exception["exception"])
+            print("    - " + exception["on"])
+            print("      " + exception["error"])
+            print("      " + "".join(exception["trace"]))

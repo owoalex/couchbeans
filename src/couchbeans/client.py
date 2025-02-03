@@ -61,14 +61,39 @@ class CouchClient:
         raise ConnectionError("Gave up connecting to CouchDB after " + str(try_n) + " tries")
 
     def find(self, database, selector = [], fields = None, sort = None, page = 0, page_size = 20):
-        for sortby in sort:
-            for key in sortby:
-                if not key in selector:
-                    selector[key] = {"$exists": True}
+        if not sort is None:
+            for sortby in sort:
+                for key in sortby:
+                    if not key in selector:
+                        selector[key] = {"$exists": True}
+
         mango = {
                 "selector": selector,
                 "skip": page * page_size,
                 "limit": page_size
+            }
+
+        if not sort is None:
+            mango["sort"] = sort
+
+        if not fields is None:
+            mango["fields"] = fields
+
+        return self.__couch_query("/" + database + "/_find", HTTPMethod.POST, mango)
+
+    def find_all(self, database, selector = [], fields = None, sort = None):
+        limit = self.__couch_query("/" + database + "/_all_docs", HTTPMethod.GET)["total_rows"]
+
+
+        if not sort is None:
+            for sortby in sort:
+                for key in sortby:
+                    if not key in selector:
+                        selector[key] = {"$exists": True}
+
+        mango = {
+                "selector": selector,
+                "limit": limit
             }
 
         if not sort is None:
