@@ -13,7 +13,7 @@ True
 {'_id': 'bean', '_rev': '1-975cf46dd62455d25b4743874062ebfe', 'type': 'baked'}
 ```
 
-Have a look at the [test script](./test/example.py) for more examples of how to use CouchBeans.
+Have a look at the [test script](https://github.com/owoalex/couchbeans/blob/main/test/example.py) for more examples of how to use CouchBeans. The API quick reference can be found in [docs/api-ref.md](https://github.com/owoalex/couchbeans/blob/main/docs/api-ref.md).
 
 ## Installation
 CouchBeans is installable via PIP:
