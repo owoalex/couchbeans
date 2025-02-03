@@ -60,7 +60,7 @@ class CouchClient:
                 try_n += 1
         raise ConnectionError("Gave up connecting to CouchDB after " + str(try_n) + " tries")
 
-    def find(self, database, selector = [], fields = None, sort = None, page = 0, page_size = 20):
+    def find(self, database, selector = {}, fields = None, sort = None, page = 0, page_size = 20):
         if not sort is None:
             for sortby in sort:
                 for key in sortby:
@@ -81,7 +81,7 @@ class CouchClient:
 
         return self.__couch_query("/" + database + "/_find", HTTPMethod.POST, mango)
 
-    def find_all(self, database, selector = [], fields = None, sort = None):
+    def find_all(self, database, selector = {}, fields = None, sort = None):
         limit = self.__couch_query("/" + database + "/_all_docs", HTTPMethod.GET)["total_rows"]
 
 
