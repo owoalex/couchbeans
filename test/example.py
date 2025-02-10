@@ -57,6 +57,27 @@ def test_put_document(conn, verbose):
     #print(json.dumps(doc, indent=4))
     return len(get_doc_diff(doc, desired_doc)) == 0 # Check for an exact match
 
+def test_put_document_overwrite(conn, verbose):
+    if verbose:
+        print("Testing creating a document")
+    desired_doc = {
+            "edible": True,
+            "price": 1.20,
+            "weight": 430,
+            "stock": 203
+        }
+    i_doc = {
+            "edible": False,
+            "price": 1.20,
+            "weight": 430,
+            "stock": 203
+        }
+    conn.put_document("beans_test_db", "broiled", i_doc)
+    conn.put_document("beans_test_db", "broiled", desired_doc)
+    doc = conn.get_document("beans_test_db", "broiled")
+    #print(json.dumps(doc, indent=4))
+    return len(get_doc_diff(doc, desired_doc)) == 0 # Check for an exact match
+
 def test_patch_document(conn, verbose):
     if verbose:
         print("Testing patching the last document")
@@ -117,15 +138,17 @@ def test_find_document(conn, verbose):
         doc = docs[0]
     return len(get_doc_diff(doc, desired_doc)) == 0 # Check for an exact match
 
+
+def test_double_delete_document(conn, verbose):
+    if verbose:
+        print("Testing permissive deleting of a nonexistent record")
+    conn.delete_document("beans_test_db", "broiled")
+    conn.delete_document("beans_test_db", "broiled")
+    return True
+
 def test_find_all_document(conn, verbose):
     if verbose:
         print("Testing finding a huge list of documents")
-    desired_doc = {
-            "edible": True,
-            "price": 2.99,
-            "weight": 499,
-            "stock": 228
-        }
     docs = conn.find_all("beans_test_db", {
             "edible": True
         })
@@ -136,6 +159,10 @@ def test_delete_document(conn, verbose):
     if verbose:
         print("Testing deleting the last document")
     conn.delete_document("beans_test_db", "baked")
+    if verbose:
+        print("Testing deleting of a nonexistent record")
+    conn.delete_document("beans_test_db", "broiled")
+    conn.delete_document("beans_test_db", "broiled")
     return True
 
 if __name__ == "__main__":
@@ -166,8 +193,10 @@ if __name__ == "__main__":
             test_create_db,
             test_put_document,
             test_patch_document,
+            test_put_document_overwrite,
             test_mass_put_document,
             test_find_document,
+            test_double_delete_document,
             test_find_all_document,
             test_delete_document,
             test_delete_db,

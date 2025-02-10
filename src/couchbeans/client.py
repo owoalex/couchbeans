@@ -127,15 +127,35 @@ class CouchClient:
         return self.__couch_query("/" + database + "/" + str(doc_id), HTTPMethod.GET)
 
     # This is a utility function - it will just delete whatever is at the ID!
-    def delete_document(self, database, doc_id):
-        document = self.__couch_query("/" + database + "/" + str(doc_id), HTTPMethod.GET)
-        return self.__couch_query("/" + database + "/" + str(doc_id) + "?rev=" + document["_rev"], HTTPMethod.DELETE)
+    def delete_document(self, database, doc_id, strict=False):
+        rev_str = ""
+        try:
+            document = self.__couch_query("/" + database + "/" + str(doc_id), HTTPMethod.GET)
+            rev_str = "?rev=" + document["_rev"]
+            return self.__couch_query("/" + database + "/" + str(doc_id) + rev_str, HTTPMethod.DELETE)
+        except CouchHTTPError as e:
+            if strict or (not e.code == 404):
+                raise e # Filter out 404, usually we don't care if the document doesn't exist
+            else:
+                return False # Indicate we didn't actually have to delete anything!
 
-    def put_document(self, database, doc_id, document):
+    def put_document(self, database, doc_id, document, overwrite=True, strict=False):
+        if overwrite and not strict:
+            try:
+                in_document = self.__couch_query("/" + database + "/" + str(doc_id), HTTPMethod.GET)
+                document["_rev"] = in_document["_rev"]
+            except CouchHTTPError as e:
+                if not e.code == 404:
+                    raise e # Filter out 404, we don't want false alarms!
         return self.__couch_query("/" + database + "/" + str(doc_id), HTTPMethod.PUT, document)
 
     # Another utility function, will modify the document regardless of _rev
-    def patch_document(self, database, doc_id, document_diff):
-        document = self.__couch_query("/" + database + "/" + str(doc_id), HTTPMethod.GET)
+    def patch_document(self, database, doc_id, document_diff, strict=False):
+        document = {}
+        try:
+            document = self.__couch_query("/" + database + "/" + str(doc_id), HTTPMethod.GET)
+        except CouchHTTPError as e:
+            if strict or (not e.code == 404):
+                raise e # Filter out 404, we just default to merging with an empty document
         merged_document = {**document, **document_diff}
         return self.__couch_query("/" + database + "/" + str(doc_id), HTTPMethod.PUT, merged_document)
