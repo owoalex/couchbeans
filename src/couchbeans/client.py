@@ -79,7 +79,7 @@ class CouchClient:
         if not fields is None:
             mango["fields"] = fields
 
-        return self.__couch_query("/" + database + "/_find", HTTPMethod.POST, mango)
+        return self.__couch_query("/" + database + "/_find", HTTPMethod.POST, mango)["docs"]
 
     def find_all(self, database, selector = {}, fields = None, sort = None):
         limit = self.__couch_query("/" + database + "/_all_docs", HTTPMethod.GET)["total_rows"]
@@ -102,7 +102,7 @@ class CouchClient:
         if not fields is None:
             mango["fields"] = fields
 
-        return self.__couch_query("/" + database + "/_find", HTTPMethod.POST, mango)
+        return self.__couch_query("/" + database + "/_find", HTTPMethod.POST, mango)["docs"]
 
     def create_db(self, database, shards=None, replicas=None, partitioned=False):
         options = {

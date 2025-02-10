@@ -111,7 +111,7 @@ def test_find_document(conn, verbose):
     docs = conn.find("beans_test_db", {
             "price": 2.99,
             "weight": 499
-        })["docs"]
+        })
     doc = {}
     if len(docs) == 1:
         doc = docs[0]
@@ -128,7 +128,7 @@ def test_find_all_document(conn, verbose):
         }
     docs = conn.find_all("beans_test_db", {
             "edible": True
-        })["docs"]
+        })
     doc = {}
     return len(docs) == 238
 
